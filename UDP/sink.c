@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
   // set IP address as host's IP address
   s_in.sin_addr.s_addr = htonl(INADDR_ANY);    /* WILDCARD */
   // set port number
-  s_in.sin_port = (u_short)0x3334;
+  char* ptr;
+  s_in.sin_port = (u_short)strtol(argv[1], &ptr, 10) + 1;
 
   printsin( &s_in, "SINK", "Local socket is:"); 
   // flush stdout

@@ -30,8 +30,9 @@ int main(int argc, char *argv[])
     s_out.sin_family = (short) AF_INET;
     
     // set port number
-    s_in.sin_port = (u_short)0x3333;
-    s_out.sin_port = (u_short)0x3334;
+    char* ptr;
+    s_in.sin_port = (u_short)strtol(argv[1], &ptr, 10);
+    s_out.sin_port = (u_short)strtol(argv[1], &ptr, 10) + 1;
     
     // assign the address specified by s_in to socket_fd 
     bind(socket_fd, (struct sockaddr *)&s_in, sizeof(s_in));

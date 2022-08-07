@@ -29,7 +29,8 @@ int main(int argc, char *argv[])
   // insert IP address into the dest struct
   bcopy(hostptr->h_addr, (char *)&dest.sin_addr,hostptr->h_length);
   // set port number
-  dest.sin_port = (u_short)0x3333;
+  char* ptr;
+  dest.sin_port = (u_short)strtol(argv[2], &ptr, 10);
   int counter = 0;
   while(1)
   {
