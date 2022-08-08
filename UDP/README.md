@@ -7,7 +7,7 @@ make all
 ```
 2. Open a new terminal and type:
 ```
-./gateway PORT_NUMBER
+./gateway IP_ADDRESS PORT_NUMBER
 ```
 3. Open a new terminal and type:
 ```

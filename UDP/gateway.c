@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
     struct sockaddr_in s_in, s_out;
     // declare a new struct of a message buffer
     struct { char head; u_long body; char tail; } msg;
+    // declare a new structure of description of data base entry for a single host.
+    struct hostent *hostptr;
 
     // initilize the socket
     socket_fd = socket (AF_INET, SOCK_DGRAM, 0);
@@ -25,14 +27,20 @@ int main(int argc, char *argv[])
     bzero((char *) &s_in, sizeof(s_in)); /* They say you must do this */
     bzero((char *) &s_out, sizeof(s_out)); /* They say you must do this */
 
+    // get IP address from the terminal
+    hostptr = gethostbyname(argv[1]);
+    
     // set IP address type to IPv4
     s_in.sin_family = (short) AF_INET;
     s_out.sin_family = (short) AF_INET;
+
+    // insert IP address into the dest struct
+    bcopy(hostptr->h_addr, (char *)&s_out.sin_addr,hostptr->h_length);
     
     // set port number
     char* ptr;
-    s_in.sin_port = (u_short)strtol(argv[1], &ptr, 10);
-    s_out.sin_port = (u_short)strtol(argv[1], &ptr, 10) + 1;
+    s_in.sin_port = (u_short)strtol(argv[2], &ptr, 10);
+    s_out.sin_port = (u_short)strtol(argv[2], &ptr, 10) + 1;
     
     // assign the address specified by s_in to socket_fd 
     bind(socket_fd, (struct sockaddr *)&s_in, sizeof(s_in));
