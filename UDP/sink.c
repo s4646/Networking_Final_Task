@@ -8,6 +8,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void printsin(struct sockaddr_in *s, char *str1, char *str2) {
   printf("%s\n", str1);
