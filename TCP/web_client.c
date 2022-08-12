@@ -26,14 +26,14 @@ void parseCMD(char** host, char** path, char** port, char** protocol, int argc, 
         // insert protocol into protocol pointer
         if(i==1)
         {
-            *protocol = (char*)calloc(strlen(tok), 1);
+            *protocol = (char*)calloc(strlen(tok)+1, 1);
             strcat(*protocol, tok);
             (*protocol)[strlen(tok)-1] = '\0';
         }
         // insert hostname + port into host pointer
         else if(i==2)
         {
-            *host = (char*)calloc(strlen(tok), 1);
+            *host = (char*)calloc(strlen(tok)+1, 1);
             strcat(*host, tok);
         }
         // insert path into path pointer
@@ -41,7 +41,7 @@ void parseCMD(char** host, char** path, char** port, char** protocol, int argc, 
         {
             if(strcmp(tok, "(null)") != 0)
             {
-                *path = (char*)realloc(*path, strlen(*path) + strlen(tok));
+                *path = (char*)realloc(*path, strlen(*path) + strlen(tok) + 1);
                 strcat(*path, "/");
                 strcat(*path, tok);
             }
@@ -49,12 +49,12 @@ void parseCMD(char** host, char** path, char** port, char** protocol, int argc, 
         tok = strtok(NULL, "/");
         i++;
     }
-    char* temp = (char*)calloc(strlen(*host), 1);
+    char* temp = (char*)calloc(strlen(*host) + 1, 1);
     strcat(temp, *host);
     tok = strtok(temp, ":");
 
     // remove port from host pointer
-    *host = (char*)realloc(*host, strlen(tok));
+    *host = (char*)realloc(*host, strlen(tok) + 1);
     bzero(*host, sizeof(*host));
     strcat(*host, tok);
     
@@ -62,13 +62,20 @@ void parseCMD(char** host, char** path, char** port, char** protocol, int argc, 
     tok = strtok(NULL, ":");
     if(tok != NULL)
     {
-        *port = (char*)calloc(strlen(tok), 1);
+        *port = (char*)calloc(strlen(tok) + 1, 1);
         strcat(*port, tok);
     }
     else
     {
-        *port = (char*)calloc(strlen("80"), 1);
+        *port = (char*)calloc(strlen("80") + 1, 1);
         strcat(*port, "80");
+    }
+
+    // handle empty path
+    if(strlen(*path) == 0)
+    {
+        *path = (char*)realloc(*path, strlen("/") +1);
+        strcat(*path, "/");
     }
 }
 
@@ -104,9 +111,14 @@ int main(int argc, char* argv[])
     cli_name.sin_family = AF_INET;
     
     // get URL and port from the terminal
-    parseCMD(&hostname, &path, &port, &protocol, argc, argv); 
+    parseCMD(&hostname, &path, &port, &protocol, argc, argv);
+    if(strcmp(protocol, "http") != 0)
+    {
+        printf("Given protocol is not HTTP");
+        exit(1);
+    }
     // insert URL into the struct
-    if (0 != getaddrinfo(hostname, port, NULL, &res))
+    if (0 != getaddrinfo(hostname, NULL, NULL, &res))
     {
         fprintf(stderr, "Error in resolving hostname %s\n", hostname);
         exit(1);
@@ -117,7 +129,7 @@ int main(int argc, char* argv[])
     
     // set port number
     char* ptr;
-    cli_name.sin_port = (in_port_t)strtol(port, &ptr, 10);
+    cli_name.sin_port = htons((in_port_t)strtol(port, &ptr, 10));
 
     // connect the socket to the address specified by cli_name.
     if (connect(sock, (struct sockaddr *)&cli_name, sizeof(cli_name)) < 0)
@@ -128,8 +140,9 @@ int main(int argc, char* argv[])
     }
 
     // send HTTP request
-    char buf[256] = "GET url HTTP1.0\nHOST: ";
-    strcat(buf,hostname);
+    char buf[256] = "";
+    sprintf(buf, "GET %s HTTP/1.0\r\nHost: %s\r\nContent-Type: text/plain\r\n\r\n", path, hostname);
+    printf("%s\n", buf);
     if(send(sock, buf, strlen(buf), 0) < 0)
     {
         perror("Error sending HTTP request");
@@ -141,21 +154,25 @@ int main(int argc, char* argv[])
     while(1)
     {
         bzero(buf,sizeof(buf));
-        if(bytesReceived = recv(sock, buf, sizeof(buf), 0) < 0)
+        bytesReceived = recv(sock, buf, sizeof(buf), 0);
+        if(bytesReceived < 0)
         {
             perror("Error receiving HTTP response");
             close(sock);
             exit(1);
         }
-        if (bytesReceived = 0)
+        if (bytesReceived == 0)
         {
             close(sock);
             break;
         }
-        printf("%s", buf);
+        // printf("%s", buf);
+        fprintf(stdout, buf);
     }
-
+    printf("\n");
     free(hostname);
     free(port);
+    free(path);
+    free(protocol);
     return 0;
 }
