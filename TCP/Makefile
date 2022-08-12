@@ -2,7 +2,7 @@
 CC = gcc
 FLAGS = -g
 
-all: client server nslookup
+all: client server nslookup web_client
 	rm -f *.o
 
 client: net_client.o
@@ -23,5 +23,11 @@ nslookup: nslookup.o
 nslookup.o: nslookup.c
 	$(CC) $(FLAGS) -c $^
 
+web_client: web_client.o
+	$(CC) $(FLAGS) -o $@ $^
+
+web_client.o: web_client.c
+	$(CC) $(FLAGS) -c $^
+
 clean:
-	rm -f *.a *.o *.so *.gch client server nslookup
+	rm -f *.a *.o *.so *.gch client server nslookup web_client

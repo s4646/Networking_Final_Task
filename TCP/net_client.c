@@ -10,8 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#define SIM_LENGTH 10 
-#define IP_ADDRESS "127.0.0.1" 
+#define SIM_LENGTH 10  
 #define PORT 1337 
 /*
   When running the client, an error is printed:
